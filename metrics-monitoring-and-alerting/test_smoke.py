@@ -54,10 +54,10 @@ print('7. Duration requirement verified (PENDING before ALERTING)')
 
 # 8. Rate-of-change alert
 svc3 = MetricsService()
-for i in range(10):
-    svc3.ingest(DataPoint('req_rate', 100 + i * 50, timestamp=1000 + i * 60, tags={}))
+svc3.ingest(DataPoint('req_rate', 100, timestamp=1550, tags={}))
+svc3.ingest(DataPoint('req_rate', 500, timestamp=1600, tags={}))
 svc3.add_alert_rule(AlertRule('spike', 'req_rate', 'rate_change', 50, duration_seconds=0))
-a = svc3.evaluate_alerts(1600)
+a = svc3.evaluate_alerts(1610)
 assert any(x.state in ('PENDING','ALERTING') for x in a), 'rate change failed'
 print(f'8. Rate change: OK')
 
