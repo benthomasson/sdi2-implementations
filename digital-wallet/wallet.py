@@ -4,7 +4,7 @@ import threading
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime, timezone
 
 
 # Exceptions
@@ -84,7 +84,7 @@ class WalletService:
         total = 0.0
         for tx in self.transactions:
             if tx.wallet_id == wallet_id and tx.tx_type in ("withdrawal", "transfer_out"):
-                tx_date = date.fromtimestamp(tx.timestamp).isoformat()
+                tx_date = datetime.fromtimestamp(tx.timestamp, timezone.utc).date().isoformat()
                 if tx_date == target_date:
                     total += tx.amount
         return round(total, 2)
@@ -132,7 +132,7 @@ class WalletService:
             self._check_frozen(w)
             if w.balance < amount:
                 raise InsufficientFunds(f"Balance {w.balance} < {amount}")
-            today = date.today().isoformat()
+            today = datetime.now(timezone.utc).date().isoformat()
             spent = self._get_daily_spending_internal(wallet_id, today)
             if spent + amount > w.daily_limit:
                 raise DailyLimitExceeded(f"Would exceed daily limit of {w.daily_limit}")
@@ -163,7 +163,7 @@ class WalletService:
                 self._check_frozen(w_to)
                 if w_from.balance < amount:
                     raise InsufficientFunds(f"Balance {w_from.balance} < {amount}")
-                today = date.today().isoformat()
+                today = datetime.now(timezone.utc).date().isoformat()
                 spent = self._get_daily_spending_internal(from_wallet, today)
                 if spent + amount > w_from.daily_limit:
                     raise DailyLimitExceeded(f"Would exceed daily limit of {w_from.daily_limit}")
@@ -205,7 +205,7 @@ class WalletService:
         """Get total spending for a date (default: today)."""
         self._get_wallet(wallet_id)
         if target_date is None:
-            target_date = date.today().isoformat()
+            target_date = datetime.now(timezone.utc).date().isoformat()
         return self._get_daily_spending_internal(wallet_id, target_date)
 
     def set_daily_limit(self, wallet_id: str, limit: float) -> None:
