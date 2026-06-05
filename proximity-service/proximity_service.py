@@ -63,7 +63,7 @@ class GeohashIndex:
 
     def nearby(self, lat: float, lon: float, radius_km: float, limit: int = 20) -> list:
         """Find POIs within radius_km, sorted by distance."""
-        precision = self._precision_for_radius(radius_km)
+        precision = min(self._precision_for_radius(radius_km), self.precision)
         center_gh = self.encode(lat, lon, precision)
         cells = [center_gh] + self.neighbors(center_gh)
         candidates = []

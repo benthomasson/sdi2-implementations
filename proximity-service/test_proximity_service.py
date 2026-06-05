@@ -26,25 +26,15 @@ def test_example_usage():
     assert dist < 1.0
 
 
-def test_example_geohash_nearby_BUG():
-    """BUG: Geohash nearby(radius_km=1.0) returns 0 results.
-
-    Root cause: _precision_for_radius(1.0) returns 7, but the index stores
-    POIs at precision 6. In nearby(), the comparison `gh[:7] == cell` on a
-    6-char key never matches because a 6-char string != 7-char string.
-
-    Fix: cap search precision at self.precision, e.g.:
-        precision = min(self._precision_for_radius(radius_km), self.precision)
-    """
+def test_geohash_nearby_small_radius():
+    """Geohash nearby with small radius finds nearby POIs."""
     index = GeohashIndex(precision=6)
     index.add(POI("1", "Coffee Shop", 37.7750, -122.4180, "cafe"))
     index.add(POI("2", "Bookstore", 37.7760, -122.4200, "retail"))
     index.add(POI("3", "Far Away Place", 38.0, -123.0, "other"))
 
     results = index.nearby(37.7749, -122.4194, radius_km=1.0)
-    # EXPECTED per spec: len(results) == 2
-    # ACTUAL due to bug: len(results) == 0
-    assert len(results) == 0, f"If this is 2, the bug is fixed — update test"
+    assert len(results) == 2
 
 
 def test_geohash_nearby_large_radius_works():
